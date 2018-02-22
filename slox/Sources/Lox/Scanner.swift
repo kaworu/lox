@@ -3,10 +3,10 @@ import Result
 // Lox Scanner, lex a string into a stream of tokens.
 class Scanner: IteratorProtocol {
   // Run the scanner on the given lox source and return an array of token or an
-  // array of garbage on error (boxed in a garbage bin).
-  static func scan(source: String) -> Result<[Token], Garbage.Bin> {
+  // array of error (boxed in a bin).
+  static func scan(source: String) -> Result<[Token], Error.Bin> {
     var tokens: [Token] = []
-    var errors: [Garbage] = []
+    var errors: [Error] = []
     let scanner = Scanner(source: source)
     while let result = scanner.next() {
       switch result {
@@ -19,7 +19,7 @@ class Scanner: IteratorProtocol {
     if errors.isEmpty {
       return .success(tokens)
     } else {
-      return .failure(Garbage.Bin(content: errors))
+      return .failure(Error.Bin(content: errors))
     }
   }
 
@@ -32,9 +32,9 @@ class Scanner: IteratorProtocol {
     self.peeker = Peeker(source)
   }
 
-  // Return the next token scanned or a garbage on error. If the end of input
-  // is reached, nil is returned.
-  func next() -> Result<Token, Garbage>? {
+  // Return the next token scanned or an a error on failure. If the end of
+  // input is reached, nil is returned.
+  func next() -> Result<Token, Error>? {
     // Returns true if the given character is blank, false otherwise.
     func is_blank(_ c: Character) -> Bool {
       return c == " " || c == "\t" || c == "\r" || c == "\n"
@@ -63,33 +63,33 @@ class Scanner: IteratorProtocol {
     guard let c = peeker.next() else { return nil }
 
     // Helper to create a successfully scanned token.
-    func token(_ kind: Token.Kind) -> Result<Token, Garbage> {
+    func token(_ kind: Token.Kind) -> Result<Token, Error> {
       let len = peeker.offset - c.offset;
       let token = Token(kind: kind, location: (c.offset, len), scanner: self)
       return .success(token)
     }
 
-    // Helper to create a garbage that failed to scan.
-    func garbage(_ kind: Garbage.Kind) -> Result<Token, Garbage> {
+    // Helper to create an error that failed to scan.
+    func error(_ kind: Error.Kind) -> Result<Token, Error> {
       let len = peeker.offset - c.offset;
-      let garbage = Garbage(kind: kind, location: (c.offset, len), scanner: self)
-      return .failure(garbage)
+      let error = Error(kind: kind, location: (c.offset, len), scanner: self)
+      return .failure(error)
     }
 
     // Scan a literal string. Can return a failure if the end of input is
     // reached before finding a closing double quote.
-    func string() -> Result<Token, Garbage> {
+    func string() -> Result<Token, Error> {
       // XXX: no way to escape double quote in a string (i.e. `"')
       let content = peeker.skip(while: { $0 != "\"" })
       // Here we are on the closing double quote or at EOF.
       guard peeker.advance() else {
-        return garbage(.unterminated_string)
+        return error(.unterminated_string)
       }
       return token(.string(String(content)))
     }
 
     // Scan a literal number, always succeed.
-    func number() -> Result<Token, Garbage> {
+    func number() -> Result<Token, Error> {
       var digits = [c.element] + peeker.skip(while: is_digit)
       let maybe_dot   = peeker.peek()?.element
       let maybe_digit = peeker.peek2()?.element
@@ -102,23 +102,23 @@ class Scanner: IteratorProtocol {
     }
 
     // Scan an identifier or a keyword, always succeed.
-    func identifier() -> Result<Token, Garbage> {
+    func identifier() -> Result<Token, Error> {
       let chars = [c.element] + peeker.skip(while: is_alnum)
       let word  = String(chars)
       let kind  = Token.Kind.keywords[word] ?? .identifier(word)
       return token(kind)
     }
 
-    // Skip the input until we find a blank character and create a garbage
+    // Skip the input until we find a blank character and create an error
     // containing the skipped characters, always return a `.failure'.
-    func unkown() -> Result<Token, Garbage> {
+    func unkown() -> Result<Token, Error> {
         let chars = peeker.skip(while: { !is_blank($0) })
-        return garbage(.unknown_stuff(String(chars)))
+        return error(.unknown_stuff(String(chars)))
     }
 
     // Skip the input until we find a newline and returns the next token
     // (if any).
-    func comment() -> Result<Token, Garbage>? {
+    func comment() -> Result<Token, Error>? {
       // A line comment goes until the end of the line.
       peeker.skip(while: { $0 != "\n" })
       return self.next()
@@ -294,13 +294,14 @@ class Scanner: IteratorProtocol {
     let scanner: Scanner
   }
 
-  // Garbage are lexemes that are not token. In other words they are invalid
+  // Error are lexemes that are not token. In other words they are invalid
   // and, as a result, errors.
-  struct Garbage: Error {
-    // A garbage bin is really only a garbage holder because Result Error type
-    // need something that conform to Swift.Error.
-    struct Bin: Error {
-      let content: [Garbage]
+  struct Error: Swift.Error {
+    // A wrapper around `[Error]' because Result.Error type need something that
+    // conform to Swift.Error. We can't make `[Error]' conform to Swift.Error,
+    // see https://github.com/apple/swift-evolution/blob/master/proposals/0143-conditional-conformances.md
+    struct Bin: Swift.Error {
+      let content: [Error]
     }
 
     // Type of Scanner Error.
