@@ -1,3 +1,9 @@
+// Simple wrapper around the main entry point of Lox CLI.
+
+import Foundation // for exit()
 import Lox
 
-print("Hello World.")
+let progname = CommandLine.arguments[0] // NOTE: unused
+let argv     = CommandLine.arguments[1...]
+let retval   = Lox.CLI().main(Array(argv))
+exit(retval)

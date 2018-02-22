@@ -1,2 +1,3 @@
-class Lox {
+// The Lox Interpreter.
+public class Lox {
 }
