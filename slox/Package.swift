@@ -14,6 +14,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
+        .package(url: "https://github.com/antitypical/Result.git", from: "3.2.4")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can
@@ -21,7 +22,8 @@ let package = Package(
         // in this package, and on products in packages which this package
         // depends on.
         .target(
-            name: "Lox"),
+            name: "Lox",
+            dependencies: ["Result"]),
         .target(
             name: "Main",
             dependencies: ["Lox"]),

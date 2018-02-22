@@ -5,5 +5,5 @@ import Lox
 
 let progname = CommandLine.arguments[0] // NOTE: unused
 let argv     = CommandLine.arguments[1...]
-let retval   = Lox.CLI().main(Array(argv))
+let retval   = CLI().main(Array(argv))
 exit(retval)
