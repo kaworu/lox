@@ -307,7 +307,6 @@ class Scanner: IteratorProtocol {
     // Type of Scanner Error.
     enum Kind {
       case unterminated_string
-      case unterminated_comment(depth: Int)
       case unknown_stuff(String)
     }
     let kind: Kind
