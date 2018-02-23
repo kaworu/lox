@@ -1,16 +1,16 @@
-language: rust
-os: osx
-osx_image: xcode9.1
+os:
+    - linux
+    - osx
+sudo: required
+dist: trusty
+osx_image: xcode7.2
 
-rust:
-  - nightly
+language: rust
 
 addons:
   apt:
     packages:
     - pkg-config
-    - libssl-dev
 
-install: curl -sL https://gist.github.com/kylef/5c0475ff02b7c7671d2a/raw/621ef9b29bbb852fdfd2e10ed147b321d792c1e4/swiftenv-install.sh | bash
+install: eval "$(curl -sL https://swiftenv.fuller.li/install.sh)"
 script: ./travis-test-all.sh
-
