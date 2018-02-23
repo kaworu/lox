@@ -1,15 +1,15 @@
 import XCTest
 @testable import Lox
 
-class LoxTests: XCTestCase {
+class ParserTests: XCTestCase {
   func testDummy() {
     XCTAssertEqual(1, 1)
   }
 }
 
 #if os(Linux)
-extension LoxTests {
-  static var allTests: [(String, (LoxTests) -> () throws -> Void)] {
+extension ParserTests {
+  static var allTests: [(String, (ParserTests) -> () throws -> Void)] {
     return [
       ("dummy", testDummy),
     ]

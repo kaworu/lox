@@ -1,6 +1,8 @@
 import XCTest
-@testable import LoxTests
+@testable import ScannerTests
+@testable import ParserTests
 
 XCTMain([
-    testCase(LoxTests.allTests),
+    testCase(ScannerTests.allTests),
+    testCase(ParserTests.allTests),
 ])

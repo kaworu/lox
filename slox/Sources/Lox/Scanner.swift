@@ -23,12 +23,12 @@ class Scanner: IteratorProtocol {
     }
   }
 
-  let source: String
+  let characters: [Character]
   var peeker: Peeker
 
   // Create a new scanner from a source input sting.
   init(source: String) {
-    self.source = source
+    self.characters = Array(source)
     self.peeker = Peeker(source)
   }
 
@@ -292,6 +292,12 @@ class Scanner: IteratorProtocol {
     let kind: Kind
     let location: (offset: Int, len: Int)
     let scanner: Scanner
+
+    // The substring in the source that is matched by this token.
+    var lexeme: String {
+      let (first, last) = (location.offset, location.offset + location.len - 1)
+      return String(scanner.characters[first...last])
+    }
   }
 
   // Error are lexemes that are not token. In other words they are invalid
