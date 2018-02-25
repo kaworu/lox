@@ -12,5 +12,8 @@ addons:
     packages:
     - pkg-config
 
-install: eval "$(curl -sL https://swiftenv.fuller.li/install.sh)"
-script: ./travis-test-all.sh
+install:
+  - eval "$(curl -sL https://swiftenv.fuller.li/install.sh)"
+  - swiftenv install 4.0.2
+script:
+  - ./travis-test-all.sh
