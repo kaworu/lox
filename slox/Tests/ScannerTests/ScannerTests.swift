@@ -8,15 +8,9 @@ class ScannerTests: XCTestCase {
   func scan(file: String) {
     let source = TestSupport.read(file: file)!
     let expectations = TestSupport.output_expect(from: source)
-    let result = Scanner.scan(source: source)
-    switch result {
-      case let .success(tokens):
-        let to_check = tokens.jloxDescription
-        XCTAssertEqual(to_check.count, expectations.count)
-        XCTAssertEqual(to_check, expectations)
-      case let failure:
-        XCTFail("\(failure)")
-    }
+    let tokens = Scanner.scan(source: source)
+    let output = tokens.jloxDescription
+    XCTAssertEqual(output, expectations)
   }
 
   func identifiers() {

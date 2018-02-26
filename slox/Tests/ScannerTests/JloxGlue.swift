@@ -29,19 +29,19 @@ extension Lox.Scanner.Token {
         return "STAR \(lexeme) null"
       case .bang:
         return "BANG \(lexeme) null"
-      case .ne:
+      case .bang_eq:
         return "BANG_EQUAL \(lexeme) null"
-      case .assign:
-        return "EQUAL \(lexeme) null"
       case .eq:
+        return "EQUAL \(lexeme) null"
+      case .eq_eq:
         return "EQUAL_EQUAL \(lexeme) null"
       case .gt:
         return "GREATER \(lexeme) null"
-      case .gte:
+      case .gt_eq:
         return "GREATER_EQUAL \(lexeme) null"
       case .lt:
         return "LESS \(lexeme) null"
-      case .lte:
+      case .lt_eq:
         return "LESS_EQUAL \(lexeme) null"
       case .identifier:
         return "IDENTIFIER \(lexeme) null"
@@ -81,6 +81,10 @@ extension Lox.Scanner.Token {
         return "VAR \(lexeme) null"
       case .while:
         return "WHILE \(lexeme) null"
+      case .unterminated_string:
+        return "UNTERMINATED-STRING \(lexeme) null"
+      case .unknown_stuff:
+        return "GARBAGE \(lexeme) null"
     }
   }
 }
