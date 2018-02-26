@@ -278,6 +278,8 @@ class Scanner: IteratorProtocol {
 
     // The substring in the source that is matched by this token.
     var lexeme: String {
+      // NOTE: probably super-slow, but that's ok since it should be used only
+      // by tests and error handling.
       let (first, last) = (location.offset, location.offset + location.len - 1)
       let characters = Array(scanner.peeker.source)
       return String(characters[first...last])
