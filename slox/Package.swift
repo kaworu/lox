@@ -30,11 +30,14 @@ let package = Package(
             dependencies: ["Lox"]),
 
         // Test stuff.
+        .target(
+            name: "TestSupport",
+            dependencies: ["Regex"]),
         .testTarget(
             name: "ScannerTests",
-            dependencies: ["Lox", "Regex"]),
+            dependencies: ["Lox", "TestSupport"]),
         .testTarget(
             name: "ParserTests",
-            dependencies: ["Lox"]),
+            dependencies: ["Lox", "TestSupport"]),
     ]
 )

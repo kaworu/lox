@@ -1,8 +1,9 @@
 import XCTest
-@testable import ScannerTests
-@testable import ParserTests
 
-XCTMain([
-    testCase(ScannerTests.allTests),
-    testCase(ParserTests.allTests),
-])
+import ScannerTests
+import ParserTests
+
+var tests = [XCTestCaseEntry]()
+tests += ScannerTests.allTests()
+tests += ParserTests.allTests()
+XCTMain(tests)

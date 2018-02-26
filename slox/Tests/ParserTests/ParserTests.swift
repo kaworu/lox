@@ -5,14 +5,8 @@ class ParserTests: XCTestCase {
   func testDummy() {
     XCTAssertEqual(1, 1)
   }
-}
 
-#if os(Linux)
-extension ParserTests {
-  static var allTests: [(String, (ParserTests) -> () throws -> Void)] {
-    return [
-      ("dummy", testDummy),
-    ]
-  }
+  static var allTests = [
+    ("dummy", testDummy),
+  ]
 }
-#endif // os(Linux)
