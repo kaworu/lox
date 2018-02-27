@@ -13,36 +13,36 @@ class ScannerTests: XCTestCase {
     XCTAssertEqual(output, expectations)
   }
 
-  func identifiers() {
+  func test_identifiers() {
     scan(file: "scanning/identifiers")
   }
 
-  func keywords() {
+  func test_keywords() {
     scan(file: "scanning/keywords")
   }
 
-  func numbers() {
+  func test_numbers() {
     scan(file: "scanning/numbers")
   }
 
-  func punctuators() {
+  func test_punctuators() {
     scan(file: "scanning/punctuators")
   }
 
-  func strings() {
+  func test_strings() {
     scan(file: "scanning/strings")
   }
 
-  func whitespace() {
+  func test_whitespace() {
     scan(file: "scanning/whitespace")
   }
 
   static var allTests = [
-    ("identifiers", identifiers),
-    ("keywords",    keywords),
-    ("numbers",     numbers),
-    ("punctuators", punctuators),
-    ("strings",     strings),
-    ("whitespace",  whitespace),
+    ("identifiers", test_identifiers),
+    ("keywords",    test_keywords),
+    ("numbers",     test_numbers),
+    ("punctuators", test_punctuators),
+    ("strings",     test_strings),
+    ("whitespace",  test_whitespace),
   ]
 }
