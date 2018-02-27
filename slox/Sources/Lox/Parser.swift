@@ -83,8 +83,8 @@ class Parser {
 
   // primary → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" ;
   func primary() throws -> Expression {
-    // Helper to "translate" a scanner token kind to an expression literal.
-    func literal(_ from: Scanner.Token.Kind) -> Expression.Literal? {
+    // Helper to "translate" a scanner token kind to an expression value.
+    func value(_ from: Scanner.Token.Kind) -> Expression.Value? {
       switch from {
         case .identifier(let id): return .identifier(id)
         case .string(let s):      return .string(s)
@@ -114,8 +114,8 @@ class Parser {
 
     if case .open_paren = token.kind {
       return try grouped(open: token)
-    } else if let lit = literal(token.kind) {
-      return Expression(.literal(lit), tokens: [token], parser: self)
+    } else if let val = value(token.kind) {
+      return Expression(.literal(val), tokens: [token], parser: self)
     } else {
       throw Error.expected_expression(got: token)
     }
@@ -211,12 +211,23 @@ class Parser {
   // Expression produced by the parser.
   class Expression {
     // Terminal expression that can be produced.
-    enum Literal {
+    enum Value: Swift.CustomStringConvertible {
       case identifier(String)
       case string(String)
       case number(Double)
       case Boolean(Bool)
       case `nil`
+
+      // Conform to CustomStringConvertible.
+      var description: String {
+        switch self {
+          case let .identifier(id): return id
+          case let .string(s):      return "\"\(s)\""
+          case let .number(n):      return "\(n)"
+          case let .Boolean(b):     return "\(b)"
+          case .nil:                return "nil"
+        }
+      }
     }
 
     // Unary prefix operators.
@@ -232,7 +243,7 @@ class Parser {
 
     // Type of Expression.
     indirect enum Kind {
-      case literal(Literal)
+      case literal(Value)
       case grouping(Expression)
       case unary(op: Prefix, rhs: Expression)
       case binary(lhs: Expression, op: Infix, rhs: Expression)
