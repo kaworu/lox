@@ -247,7 +247,7 @@ class Scanner: IteratorProtocol {
       case `true`
       case `var`
       case `while`
-      // errors
+      // Errors
       case unterminated_string
       case unknown_stuff(String)
 

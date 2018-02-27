@@ -8,7 +8,7 @@ class ScannerTests: XCTestCase {
   func scan(file: String) throws {
     let source = try TestSupport.read(file: file)
     let expectations = TestSupport.output_expect(from: source)
-    let tokens = Scanner.scan(source: source)
+    let tokens = Lox.Scanner.scan(source: source)
     let output = tokens.jloxDescription
     XCTAssertEqual(output, expectations)
   }
