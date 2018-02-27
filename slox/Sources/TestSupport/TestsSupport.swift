@@ -9,14 +9,15 @@ public enum TestSupport {
 
   // Returns the content of the provided craftinginterpreters test file, or nil
   // on failure.
-  public static func read(file: String) -> String? {
-    guard let path = Dir.craftinginterpreters(test: file) else { return nil }
-    if let content = FileManager.default.contents(atPath: path) {
-      let decoded = String(data: content, encoding: .utf8)
-      return decoded
-    } else {
-      return nil
+  public static func read(file: String) throws -> String {
+    let path = try Dir.craftinginterpreters(test: file)
+    guard let content = FileManager.default.contents(atPath: path) else {
+      throw Error.read_failed(file: path)
     }
+    guard let decoded = String(data: content, encoding: .utf8) else {
+      throw Error.decoding_failed(file: path)
+    }
+    return decoded
   }
 
   // FIXME: needs a proper abstraction once we get to other expectation types.
@@ -39,21 +40,26 @@ public enum TestSupport {
 
     // Returns the project directory. Returns nil if we're not running
     // LoxPackageTests.xctest.
-    static func project() -> String? {
+    static func project() throws -> String {
       let xctest = CommandLine.arguments[0]
-      if let match = Dir.PROJECT_DIR_RE.firstMatch(in: xctest) {
-        return match.captures[0]!
-      } else {
-        return nil
+      guard let match = Dir.PROJECT_DIR_RE.firstMatch(in: xctest) else {
+        throw Error.unrecognized_command_line(xctest)
       }
+      return match.captures[0]!
     }
 
     // Returns the absolute path of the given craftinginterpreters test file,
     // or nil on failure.
-    static func craftinginterpreters(test: String) -> String? {
-      guard let root = Dir.project() else { return nil }
+    static func craftinginterpreters(test: String) throws -> String {
+      let root = try Dir.project()
       let path = "\(root)/craftinginterpreters/test/\(test).lox"
       return path
     }
+  }
+
+  enum Error: Swift.Error {
+    case read_failed(file: String)
+    case decoding_failed(file: String)
+    case unrecognized_command_line(String)
   }
 }
