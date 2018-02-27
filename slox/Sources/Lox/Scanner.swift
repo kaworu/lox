@@ -151,7 +151,7 @@ class Scanner: IteratorProtocol {
       return lookahead.0
     }
 
-    // Returns the character after next character without consuming it.
+    // Returns the character after next one without consuming it.
     func peek2() -> Element? {
       return lookahead.1
     }
