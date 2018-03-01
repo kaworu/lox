@@ -13,68 +13,67 @@ public class CLI {
   // CLI single entry point. Launch the REPL if argv is empty, or assume that
   // the first element in argv is a path to a lox source file to execute.
   // Returns the process exit status.
-  public func main(_ argv: [String]) -> Int32 {
+  public func main(_ argv: [String]) throws -> Int32 {
     if argv.isEmpty {
-      return repl()
+      return try repl()
     } else {
-      return execute(path: argv[0], argv: Array(argv[1...]))
+      return try execute(path: argv[0], argv: Array(argv[1...]))
     }
   }
 
   // Lox Run Eval Print Loop. Returns the process exit status.
-  func repl() -> Int32 {
+  func repl() throws -> Int32 {
     // magic keystroke combination to exit the repl.
     let quit = ":q" // vi-friendly, `:' is not used by lox.
+    // the repl prompt.
+    let prompt = "\(progname)> "
+
+    // Show the prompt.
+    func show_prompt() {
+      print(prompt, terminator: "")
+      fflush(stdout)
+    }
 
     // Display a welcome banner.
     func welcome() {
       print("Welcome to lox. Type \(quit) or Control-C to exit.")
     }
 
-    // Show the prompt.
-    func prompt() {
-      print("\(progname)> ", terminator: "")
-      fflush(stdout)
-    }
-
     welcome()
-    prompt()
+    show_prompt()
     while let line = readLine() {
       guard line != quit else { break }
-      let obj = run(source: line)
-      print("=> \(obj.debugDescription)")
-      prompt()
+      do {
+        let src = Source(id: "<repl>", content: line)
+        let value = try Interpreter.interpret(code: src)
+        print("=> \(value)")
+      } catch let error as DiagnosisConvertible {
+        let indent = String(repeating: " ", count: prompt.count)
+        let diagnosis = error.diagnosis()
+        let (_, _, marker) = diagnosis.info()
+        let padding = String(repeating: " ", count: marker)
+        print(indent + padding + "^")
+        print("\(diagnosis.type): \(diagnosis.msg)")
+      }
+      show_prompt()
     }
     return 0 // success
   }
 
   // Execute the lox source file at the given path. Returns the process exit
   // status.
-  func execute(path: String, argv: [String]) -> Int32 {
-    guard let source = readfile(path: path) else { return -1 }
-    let obj = run(source: source)
-    print("=> \(obj.debugDescription)")
-    return 0 // success
-  }
-
-  // Returns the given path file content as UTF-8 or nil on error.
-  func readfile(path: String) -> String? {
-    guard let content = FileManager.default.contents(atPath: path) else {
+  func execute(path: String, argv: [String]) throws -> Int32 {
+    do {
+      let src = try Source(path: path)
+      let _ = try Interpreter.interpret(code: src)
+    } catch Source.Error.read_failed {
       err("\(path): read failed")
-      return nil
-    }
-    guard let decoded = String(data: content, encoding: .utf8) else {
+      return -1
+    } catch Source.Error.decoding_failed {
       err("\(path): decoding failed (is it an UTF-8 encoded file?)")
-      return nil
+      return -1
     }
-    return decoded
-  }
-
-  // Run the given lox code.
-  // FIXME: should return the AST or something.
-  func run(source: String) -> String {
-    print("source: \(source)")
-    return Scanner.scan(source: source).debugDescription
+    return 0 // success
   }
 
   // Print the given message and a trailing newline on stderr.

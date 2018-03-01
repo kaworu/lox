@@ -6,9 +6,10 @@ import TestSupport
 class ScannerTests: XCTestCase {
   // helper.
   func scan(file: String) throws {
-    let source = try TestSupport.read(file: file)
-    let expectations = TestSupport.output_expect(from: source)
-    let tokens = Lox.Scanner.scan(source: source)
+    let path = try TestSupport.path(of: file)
+    let src = try Lox.Source(path: path)
+    let expectations = TestSupport.output_expect(from: src.content)
+    let tokens = Lox.Scanner.scan(src: src)
     let output = tokens.jloxDescription
     XCTAssertEqual(output, expectations)
   }

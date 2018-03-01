@@ -3,27 +3,28 @@ import TestSupport
 
 @testable import Lox
 
-class ParserTests: XCTestCase {
+class EvaluationTests: XCTestCase {
   // helper.
-  func parse(file: String) throws {
+  func eval(file: String) throws {
     let path = try TestSupport.path(of: file)
     let src = try Lox.Source(path: path)
     let expectations = TestSupport.output_expect(from: src.content)
     let expectation = expectations.first!
+    let expression = try Lox.Parser.parse(src: src)
     do {
-      let expression = try Lox.Parser.parse(src: src)
-      let output = expression.jloxDescription
+      let value = try expression.evaluate()
+      let output = value.jloxDescription
       XCTAssertEqual(output, expectation)
-    } catch let err as Parser.Error {
+    } catch let err as Interpreter.Error {
       XCTFail("\(err)")
     }
   }
 
-  func test_expression() throws {
-    try parse(file: "expressions/parse")
+  func test_evaluate() throws {
+    try eval(file: "expressions/evaluate")
   }
 
   static var allTests = [
-    ("expression", test_expression),
+    ("evaluate", test_evaluate),
   ]
 }

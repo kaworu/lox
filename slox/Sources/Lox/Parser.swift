@@ -1,22 +1,20 @@
-import Result
-
-// Lox Parser, produce an AST from a source string.
+// Lox Parser, produce an AST from a source.
 class Parser {
   typealias ParseFunc = () throws -> Expression
   typealias InfixMatcher  = (Scanner.Token.Kind) -> Expression.Infix?
   typealias PrefixMatcher = (Scanner.Token.Kind) -> Expression.Prefix?
 
   // Run the parser on the given lox source and return an expression.
-  static func parse(source: String) throws -> Expression {
-    let parser = Parser(source: source)
-    return try parser.expression()
+  static func parse(src: Source) throws -> Expression {
+    let parser = Parser(src: src)
+    return try parser.expression() // FIXME: to complete
   }
 
-  var peeker: Peeker
+  var peeker: Scanner.Iterator
 
-  // Create a new parser from a source input string.
-  init(source: String) {
-    self.peeker = Peeker(source)
+  // Create a new parser from a lox source input.
+  init(src: Source) {
+    self.peeker = Scanner(src: src).makeIterator()
   }
 
   // Parse an expression or throw an Error on failure.
@@ -83,41 +81,37 @@ class Parser {
 
   // primary → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" ;
   func primary() throws -> Expression {
-    // Helper to "translate" a scanner token kind to an expression value.
-    func value(_ from: Scanner.Token.Kind) -> Expression.Value? {
-      switch from {
-        case .identifier(let id): return .identifier(id)
-        case .string(let s):      return .string(s)
-        case .number(let n):      return .number(n)
-        case .false:              return .Boolean(false)
-        case .true:               return .Boolean(true)
-        case .nil:                return .nil
-        default:                  return nil
-      }
-    }
-
     // eat the next token.
     guard let token = peeker.next() else {
-      throw Error.expected_expression(got: nil)
+      throw error(.expected_expression(got: nil))
     }
 
     // Helper parsing a grouped expression.
     func grouped(open: Scanner.Token) throws -> Expression {
       let expr = try expression()
-      let maybe_close_paren = peeker.next()
-      guard case .close_paren? = maybe_close_paren?.kind else {
-        throw Error.grouping(open: open, expr, not_close: maybe_close_paren)
+      let close = peeker.next()
+      guard case .close_paren? = close?.kind else {
+        throw error(.unclosed_grouping(open: open, expr, not_close: close))
       }
-      let tokens = [open, maybe_close_paren!]
-      return Expression(.grouping(expr), tokens: tokens, parser: self)
+      let tokens = [open, close!]
+      return Expression(.grouping(expr), tokens: tokens)
     }
 
-    if case .open_paren = token.kind {
-      return try grouped(open: token)
-    } else if let val = value(token.kind) {
-      return Expression(.literal(val), tokens: [token], parser: self)
-    } else {
-      throw Error.expected_expression(got: token)
+    switch token.kind {
+      case .open_paren:
+        return try grouped(open: token)
+      case .string(let s):
+        return Expression(.literal(.string(s)), tokens: [token])
+      case .number(let n):
+        return Expression(.literal(.number(n)), tokens: [token])
+      case .false:
+        return Expression(.literal(.Boolean(false)), tokens: [token])
+      case .true:
+        return Expression(.literal(.Boolean(true)), tokens: [token])
+      case .nil:
+        return Expression(.literal(.nil), tokens: [token])
+      default:
+        throw error(.expected_expression(got: token))
     }
   }
 
@@ -130,7 +124,7 @@ class Parser {
       let token = peeker.next()! // eat the matched operator token
       let rhs = try higher()
       let kind: Expression.Kind = .binary(lhs: lhs, op: op, rhs: rhs)
-      let expr = Expression(kind, tokens: [token], parser: self)
+      let expr = Expression(kind, tokens: [token])
       (lhs.parent, rhs.parent) = (expr, expr)
       lhs = expr
     }
@@ -145,12 +139,17 @@ class Parser {
         let token = peeker.next()! // eat the matched operator token
         let rhs = try this()
         let kind: Expression.Kind = .unary(op: op, rhs: rhs)
-        let expr = Expression(kind, tokens: [token], parser: self)
+        let expr = Expression(kind, tokens: [token])
         rhs.parent = expr
         return expr
       }
     }
     return try higher()
+  }
+
+  // Helper to create a parser error of the given kind.
+  func error(_ kind: Error.Kind) -> Error {
+    return Error(kind: kind, src: src)
   }
 
   // Discard tokens until a statement boundary is found.
@@ -168,102 +167,19 @@ class Parser {
     }
   }
 
-  // Peekable iterator over scanner tokens, much like Scanner.Peeker.
-  class Peeker: IteratorProtocol {
-    typealias Element = Scanner.Token
-
-    let source: String
-    var scanner: Scanner
-    var lookahead: (Element?, Element?)
-
-    // Create an iterator from a given String.
-    init(_ source: String) {
-      self.source = source
-      self.scanner = Scanner(source: source)
-      self.lookahead = (self.scanner.next(), self.scanner.next())
-    }
-
-    // Returns the next token without consuming it.
-    func peek() -> Element? {
-      return lookahead.0
-    }
-
-    // Returns the token after next one without consuming it.
-    func peek2() -> Element? {
-      return lookahead.1
-    }
-
-    // Returns the next character and advance the iterator.
-    func next() -> Element? {
-      let ret = lookahead.0
-      lookahead = (lookahead.1, scanner.next())
-      return ret
-    }
-
-    // Advance the iterator and return true if an element was consumed, false
-    // otherwise.
-    @discardableResult
-    func advance() -> Bool {
-      return next() != nil
-    }
-  }
-
-  // Expression produced by the parser.
-  class Expression {
-    // Terminal expression that can be produced.
-    enum Value: Swift.CustomStringConvertible {
-      case identifier(String)
-      case string(String)
-      case number(Double)
-      case Boolean(Bool)
-      case `nil`
-
-      // Conform to CustomStringConvertible.
-      var description: String {
-        switch self {
-          case let .identifier(id): return id
-          case let .string(s):      return "\"\(s)\""
-          case let .number(n):      return "\(n)"
-          case let .Boolean(b):     return "\(b)"
-          case .nil:                return "nil"
-        }
-      }
-    }
-
-    // Unary prefix operators.
-    enum Prefix {
-      case not, inverse
-    }
-
-    // Binary infix operators.
-    enum Infix {
-      case eq, ne, lt, lte, gt, gte
-      case add, sub, mult, div
-    }
-
-    // Type of Expression.
-    indirect enum Kind {
-      case literal(Value)
-      case grouping(Expression)
-      case unary(op: Prefix, rhs: Expression)
-      case binary(lhs: Expression, op: Infix, rhs: Expression)
-    }
-
-    let kind: Kind
-    let tokens: [Scanner.Token]
-    let parser: Parser
-    weak var parent: Expression? = nil
-
-    init(_ kind: Kind, tokens: [Scanner.Token], parser: Parser) {
-      self.kind = kind
-      self.tokens = tokens
-      self.parser = parser
-    }
+  // The lox source that we attempt to parse.
+  var src: Source {
+    return peeker.src
   }
 
   // Errors produced by the parser.
-  enum Error: Swift.Error {
-      case grouping(open: Scanner.Token, Expression, not_close: Scanner.Token?)
+  struct Error: Swift.Error {
+    let kind: Kind
+    let src: Source
+
+    enum Kind {
+      case unclosed_grouping(open: Scanner.Token, Expression, not_close: Scanner.Token?)
       case expected_expression(got: Scanner.Token?)
+    }
   }
 }

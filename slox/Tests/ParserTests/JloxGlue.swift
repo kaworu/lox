@@ -2,9 +2,11 @@
 
 // Expression description as jlox display them.
 
-extension Lox.Parser.Expression {
+extension Lox.Expression {
   var jloxDescription: String {
     switch self.kind {
+      case let .identifier(id):
+        return "\(id)"
       case let .literal(value):
         return "\(value)"
       case let .grouping(expr):
