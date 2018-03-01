@@ -22,8 +22,7 @@ let package = Package(
         // in this package, and on products in packages which this package
         // depends on.
         .target(
-            name: "Lox",
-            dependencies: ["Result"]),
+            name: "Lox"),
         .target(
             name: "Main",
             dependencies: ["Lox"]),
