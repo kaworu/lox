@@ -30,11 +30,12 @@ public enum TestSupport {
 
     // Returns the project directory.
     static func project() throws -> String {
-      let xctest = CommandLine.arguments[0]
-      guard let match = Dir.PROJECT_DIR_RE.firstMatch(in: xctest) else {
-        throw Error.unrecognized_command_line(xctest)
+      for arg in CommandLine.arguments {
+        if let match = Dir.PROJECT_DIR_RE.firstMatch(in: arg) {
+          return match.captures[0]!
+        }
       }
-      return match.captures[0]!
+      throw Error.xctest_cannot_be_found
     }
 
     // Returns the absolute path of the given craftinginterpreters test file.
@@ -47,6 +48,6 @@ public enum TestSupport {
 
   // Error thrown by the test support stuff.
   enum Error: Swift.Error {
-    case unrecognized_command_line(String)
+    case xctest_cannot_be_found
   }
 }
