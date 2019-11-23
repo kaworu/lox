@@ -4,6 +4,7 @@ os:
     - osx
 dist: bionic
 sudo: required
+osx_image: xcode11.2
 
 addons:
   apt:
