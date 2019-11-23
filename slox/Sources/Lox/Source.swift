@@ -118,13 +118,13 @@ public class Source: Swift.Sequence {
     // all the skipped characters.
     @discardableResult
     public func skip(while predicate: (Character) -> Bool) -> [Character] {
-      var chars: [Character] = []
+      var skipped: [Character] = []
       while let c = peek() {
         guard predicate(c.element) else { break }
-        chars.append(c.element)
+        skipped.append(c.element)
         advance()
       }
-      return chars
+      return skipped
     }
 
     // The offset of the peekable character, or src.content.count when we're at
