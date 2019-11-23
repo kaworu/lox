@@ -6,17 +6,8 @@
         "repositoryURL": "https://github.com/sharplet/Regex.git",
         "state": {
           "branch": null,
-          "revision": "3e671ed911b467c0d9c05e56f03d9e5bcb535f39",
-          "version": "1.1.0"
-        }
-      },
-      {
-        "package": "Result",
-        "repositoryURL": "https://github.com/antitypical/Result.git",
-        "state": {
-          "branch": null,
-          "revision": "7477584259bfce2560a19e06ad9f71db441fff11",
-          "version": "3.2.4"
+          "revision": "a819aed0e9555268c29a62500fe6fb781ae7f57d",
+          "version": "2.1.0"
         }
       }
     ]
