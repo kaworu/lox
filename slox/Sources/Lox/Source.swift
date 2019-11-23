@@ -69,7 +69,7 @@ public class Source: Swift.Sequence {
     public typealias Element = (offset: Int, element: Character)
 
     let src: Source
-    var chars: EnumeratedIterator<String.Iterator>
+    var chars: EnumeratedSequence<String>.Iterator
     var lookahead: (Element?, Element?)
 
     // Create an iterator from a given String.
